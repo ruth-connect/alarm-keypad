@@ -19,8 +19,4 @@ public interface AlarmStateService {
 	public void tick();
 
 	public void sleep(int milliseconds);
-
-	public void beep(int milliseconds);
-
-	public void flash(int milliseconds, boolean red, boolean amber, boolean green, boolean blue);
 }

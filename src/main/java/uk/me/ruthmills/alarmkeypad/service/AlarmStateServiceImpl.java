@@ -119,7 +119,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void handleCodeNumber(char key) {
 		lastKeyPressTime = new Date();
 		code.append(key);
-		ledService.setLeds(code.length() % 4 == 1, code.length() % 4 == 2, code.length() % 4 == 3,
+		ledService.setLeds(code.length() % 4 >= 1, code.length() % 4 >= 2, code.length() % 4 >= 3,
 				code.length() > 0 && code.length() % 4 == 0);
 		ledCount = 0;
 		beep(100);

@@ -1,5 +1,11 @@
 package uk.me.ruthmills.alarmkeypad.service;
 
+import static com.pi4j.io.gpio.PinState.HIGH;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_04;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_17;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_22;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_27;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -8,33 +14,31 @@ import org.springframework.stereotype.Service;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
 
 @Service
 public class LedServiceImpl implements LedService {
 
-	private GpioController gpio;
-	private GpioPinDigitalOutput redLed;
-	private GpioPinDigitalOutput amberLed;
-	private GpioPinDigitalOutput greenLed;
-	private GpioPinDigitalOutput blueLed;
+	private volatile GpioController gpio;
+	private volatile GpioPinDigitalOutput redLed;
+	private volatile GpioPinDigitalOutput amberLed;
+	private volatile GpioPinDigitalOutput greenLed;
+	private volatile GpioPinDigitalOutput blueLed;
 
 	@PostConstruct
 	public void initialise() {
 		gpio = GpioFactory.getInstance();
 
-		redLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "Red LED", PinState.HIGH);
-		redLed.setShutdownOptions(true, PinState.HIGH);
+		redLed = gpio.provisionDigitalOutputPin(GPIO_04, "Red LED", HIGH);
+		redLed.setShutdownOptions(true, HIGH);
 
-		amberLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_17, "Amber LED", PinState.HIGH);
-		amberLed.setShutdownOptions(true, PinState.HIGH);
+		amberLed = gpio.provisionDigitalOutputPin(GPIO_17, "Amber LED", HIGH);
+		amberLed.setShutdownOptions(true, HIGH);
 
-		greenLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_27, "Green LED", PinState.HIGH);
-		greenLed.setShutdownOptions(true, PinState.HIGH);
+		greenLed = gpio.provisionDigitalOutputPin(GPIO_27, "Green LED", HIGH);
+		greenLed.setShutdownOptions(true, HIGH);
 
-		blueLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_22, "Blue LED", PinState.HIGH);
-		blueLed.setShutdownOptions(true, PinState.HIGH);
+		blueLed = gpio.provisionDigitalOutputPin(GPIO_22, "Blue LED", HIGH);
+		blueLed.setShutdownOptions(true, HIGH);
 	}
 
 	@PreDestroy

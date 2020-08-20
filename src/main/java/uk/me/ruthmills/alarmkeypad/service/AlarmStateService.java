@@ -1,7 +1,5 @@
 package uk.me.ruthmills.alarmkeypad.service;
 
-import uk.me.ruthmills.alarmkeypad.model.AlarmState;
-
 public interface AlarmStateService {
 
 	public void armedAway();
@@ -16,5 +14,13 @@ public interface AlarmStateService {
 
 	public void triggered();
 
-	public AlarmState getAlarmState();
+	public void keyPressed(char key);
+
+	public void tick();
+
+	public void sleep(int milliseconds);
+
+	public void beep(int milliseconds);
+
+	public void flash(int milliseconds, boolean red, boolean amber, boolean green, boolean blue);
 }

@@ -144,6 +144,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			restTemplate.delete(endpoint, new HttpEntity<String>("", headers));
 
 			lastKeyPressTime = null;
+			clearCode();
 		}
 	}
 
@@ -172,9 +173,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void handleShowStatus() {
-		if (code.length() > 0) {
-			code.delete(0, code.length());
-		}
+		clearCode();
 		lastKeyPressTime = null;
 		lastStateChangeTime = new Date();
 		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
@@ -183,9 +182,16 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		beep(200);
 	}
 
+	private void clearCode() {
+		if (code.length() > 0) {
+			code.delete(0, code.length());
+		}
+	}
+
 	@Override
 	public void tick() {
 		if (lastKeyPressTime == null || new Date().getTime() - lastKeyPressTime.getTime() > KEY_PRESS_TIMEOUT) {
+			clearCode();
 			if (alarmState.equals(TRIGGERED)) {
 				flashTriggered();
 			} else if (alarmState.equals(COUNTDOWN)) {

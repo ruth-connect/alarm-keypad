@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AlarmkeypadApplication {
+public class AlarmKeypadApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AlarmkeypadApplication.class, args);
+		SpringApplication.run(AlarmKeypadApplication.class, args);
 	}
 
 }

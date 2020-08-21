@@ -222,11 +222,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		logger.info("Sending command to update state to: " + state);
 
 		StringBuilder requestJson = new StringBuilder();
-		requestJson.append("{\"state\": {\"command\": \"");
+		requestJson.append("{\"state\": \"");
 		requestJson.append(state);
-		requestJson.append("\", \"code\": \"");
+		requestJson.append(" ");
 		requestJson.append(code);
-		requestJson.append("\"}}");
+		requestJson.append("\"}");
 		logger.info("JSON to send: " + requestJson);
 
 		HttpHeaders headers = new HttpHeaders();

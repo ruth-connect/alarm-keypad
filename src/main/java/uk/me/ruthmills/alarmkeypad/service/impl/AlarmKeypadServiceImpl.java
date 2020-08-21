@@ -2,14 +2,14 @@ package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinPullResistance.PULL_UP;
 import static com.pi4j.io.gpio.PinState.HIGH;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_06;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_12;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_13;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_16;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_19;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_20;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_21;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_22;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_23;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_24;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_25;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_26;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_27;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_28;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_29;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -29,8 +29,8 @@ import uk.me.ruthmills.alarmkeypad.service.AlarmStateService;
 @Service
 public class AlarmKeypadServiceImpl implements AlarmKeypadService {
 
-	private static final Pin COLUMN_PINS[] = { GPIO_06, GPIO_13, GPIO_19, GPIO_26 };
-	private static final Pin ROW_PINS[] = { GPIO_12, GPIO_16, GPIO_20, GPIO_21 };
+	private static final Pin COLUMN_PINS[] = { GPIO_22, GPIO_23, GPIO_24, GPIO_25 };
+	private static final Pin ROW_PINS[] = { GPIO_26, GPIO_27, GPIO_28, GPIO_29 };
 	private static final char MATRIX[][] = { { '1', '2', '3', 'A' }, { '4', '5', '6', 'B' }, { '7', '8', '9', 'C' },
 			{ '*', '0', '#', 'D' } };
 

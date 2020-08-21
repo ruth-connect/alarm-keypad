@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -247,7 +248,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		restTemplate.postForEntity(endpoint, new HttpEntity<String>(requestJson.toString(), headers), String.class);
 
 		logger.info("About to send DELETE to " + endpoint);
-		restTemplate.delete(endpoint, new HttpEntity<String>("", headers));
+		restTemplate.exchange(endpoint, HttpMethod.DELETE, new HttpEntity<String>("", headers), String.class);
 	}
 
 	private void handleDelete() {

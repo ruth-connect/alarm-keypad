@@ -69,7 +69,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = UNKNOWN;
 		code = new StringBuilder();
 		restTemplate = new RestTemplate(getClientHttpRequestFactory());
-		sendCommand("initialise");
+		try {
+			sendCommand("initialise");
+		} catch (Exception ex) {
+			logger.error("Failed to send initialise command", ex);
+		}
 		logger.info("Alarm State set to unknown");
 	}
 

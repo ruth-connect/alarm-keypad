@@ -16,6 +16,8 @@ import javax.annotation.PostConstruct;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -54,7 +56,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private volatile Date lastStateChangeTime;
 	private volatile Date requestedExitTime;
 	private volatile AlarmState requestedExitState;
-	private volatile RestTemplate restTemplate;
+
+	private RestTemplate restTemplate;
+	private final Logger logger = LoggerFactory.getLogger(AlarmStateServiceImpl.class);
 
 	@PostConstruct
 	public void initialise() {
@@ -62,6 +66,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		code = new StringBuilder();
 		restTemplate = new RestTemplate(getClientHttpRequestFactory());
 		sendCommand("initialise");
+		logger.info("Alarm State set to initialised");
 	}
 
 	private ClientHttpRequestFactory getClientHttpRequestFactory() {
@@ -77,6 +82,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = ARMED_AWAY;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to armed_away");
 	}
 
 	@Override
@@ -84,6 +90,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = ARMED_NIGHT;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to armed_night");
 	}
 
 	@Override
@@ -91,6 +98,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = ARMED_HOME;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to armed_home");
 	}
 
 	@Override
@@ -98,6 +106,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = DISARMED;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to disarmed");
 	}
 
 	@Override
@@ -105,6 +114,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = COUNTDOWN;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to countdown");
 	}
 
 	@Override
@@ -112,11 +122,13 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = TRIGGERED;
 		lastStateChangeTime = new Date();
 		cancelExit();
+		logger.info("Alarm State set to triggered");
 	}
 
 	@Override
 	public void keyPressed(char key) {
 		cancelExit();
+		logger.info("Key pressed: " + key);
 		if (key >= '0' && key <= '9') {
 			handleCodeNumber(key);
 		} else if (key >= 'A' && key <= 'D') {
@@ -124,38 +136,41 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		} else if (key == '*') {
 			handleDelete();
 		} else if (key == '#') {
-			handleShowStatus();
+			handleShowState();
 		}
 	}
 
 	private void handleCodeNumber(char key) {
 		lastKeyPressTime = new Date();
 		code.append(key);
+		logger.info("Code entered: " + code.toString());
 		showCodeLength();
+		beep(100);
 	}
 
 	private void handleCommand(char key) {
 		if (code.length() > 0) {
 			if (!alarmState.equals(COUNTDOWN) && !alarmState.equals(TRIGGERED)) {
-				if (getCommand(key).equals("armed_away") || getCommand(key).equals("armed_night")) {
+				if (getStateName(key).equals("armed_away") || getStateName(key).equals("armed_night")) {
+					logger.info("Grace period entered for state change to: " + getStateName(key));
 					beep(200);
 					requestedExitState = getState(key);
 					requestedExitTime = new Date();
 					setLedForState(requestedExitState);
 				} else {
 					beep(200);
-					sendCommand(getCommand(key));
+					sendCommand(getStateName(key));
 				}
-			} else if (getCommand(key).equals("disarmed")) {
+			} else if (getStateName(key).equals("disarmed")) {
 				beep(200);
-				sendCommand(getCommand(key));
+				sendCommand(getStateName(key));
 			}
 			lastKeyPressTime = null;
 			clearCode();
 		}
 	}
 
-	private String getCommand(char key) {
+	private String getStateName(char key) {
 		switch (key) {
 		case 'A':
 			return "armed_away";
@@ -168,7 +183,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		}
 	}
 
-	private String getCommand(AlarmState alarmState) {
+	private String getStateName(AlarmState alarmState) {
 		switch (alarmState) {
 		case ARMED_AWAY:
 			return "armed_away";
@@ -176,8 +191,14 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			return "armed_night";
 		case ARMED_HOME:
 			return "armed_home";
-		default:
+		case DISARMED:
 			return "disarmed";
+		case COUNTDOWN:
+			return "countdown";
+		case TRIGGERED:
+			return "triggered";
+		default:
+			return "unknown";
 		}
 	}
 
@@ -194,13 +215,16 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		}
 	}
 
-	private void sendCommand(String command) {
+	private void sendCommand(String state) {
+		logger.info("Sending command to update state to: " + state);
+
 		StringBuilder requestJson = new StringBuilder();
 		requestJson.append("{\"state\": {\"command\": \"");
-		requestJson.append(command);
+		requestJson.append(state);
 		requestJson.append("\", \"code\": \"");
 		requestJson.append(code);
 		requestJson.append("\"}}");
+		logger.info("JSON to send: " + requestJson);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -215,15 +239,17 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		if (code.length() > 0) {
 			lastKeyPressTime = new Date();
 			code.delete(code.length() - 1, code.length());
+			logger.info("Code entered: " + code.toString());
 			showCodeLength();
 			beep(100);
 		}
 	}
 
-	private void handleShowStatus() {
+	private void handleShowState() {
 		clearCode();
 		lastKeyPressTime = null;
 		lastStateChangeTime = new Date();
+		logger.info("Hash key pressed. Showing current state: " + getStateName(alarmState));
 		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
 				alarmState.equals(DISARMED));
 		beep(200);
@@ -255,8 +281,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 				} else if (beforeExitTime()) {
 					flashExitWarning();
 				} else {
+					logger.info("Grace period expired");
 					requestedExitTime = null;
-					sendCommand(getCommand(requestedExitState));
+					sendCommand(getStateName(requestedExitState));
 					cancelExit();
 				}
 			}

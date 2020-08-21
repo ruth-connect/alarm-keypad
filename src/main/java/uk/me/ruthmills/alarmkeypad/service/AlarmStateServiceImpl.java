@@ -57,6 +57,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		alarmState = UNKNOWN;
 		code = new StringBuilder();
 		restTemplate = new RestTemplate(getClientHttpRequestFactory());
+		sendCommand("initialise");
 	}
 
 	private ClientHttpRequestFactory getClientHttpRequestFactory() {
@@ -125,21 +126,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void handleCommand(char key) {
 		if (code.length() > 0) {
 			beep(200);
-			StringBuilder requestJson = new StringBuilder();
-			requestJson.append("{\"state\": {\"command\": \"");
-			requestJson.append(getCommand(key));
-			requestJson.append("\", \"code\": \"");
-			requestJson.append(code);
-			requestJson.append("\"}}");
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.set("Authorization", "Bearer " + token);
-
-			restTemplate.postForEntity(endpoint, new HttpEntity<String>(requestJson.toString(), headers), String.class);
-
-			restTemplate.delete(endpoint, new HttpEntity<String>("", headers));
-
+			sendCommand(getCommand(key));
 			lastKeyPressTime = null;
 			clearCode();
 		}
@@ -156,6 +143,23 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		default:
 			return "disarmed";
 		}
+	}
+
+	private void sendCommand(String command) {
+		StringBuilder requestJson = new StringBuilder();
+		requestJson.append("{\"state\": {\"command\": \"");
+		requestJson.append(command);
+		requestJson.append("\", \"code\": \"");
+		requestJson.append(code);
+		requestJson.append("\"}}");
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", "Bearer " + token);
+
+		restTemplate.postForEntity(endpoint, new HttpEntity<String>(requestJson.toString(), headers), String.class);
+
+		restTemplate.delete(endpoint, new HttpEntity<String>("", headers));
 	}
 
 	private void handleDelete() {

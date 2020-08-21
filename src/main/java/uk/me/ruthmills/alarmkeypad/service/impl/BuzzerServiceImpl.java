@@ -33,6 +33,7 @@ public class BuzzerServiceImpl implements BuzzerService {
 		gpio.shutdown();
 	}
 
+	@Override
 	public void setBuzzer(boolean buzzer) {
 		if (buzzer) {
 			this.buzzer.high();

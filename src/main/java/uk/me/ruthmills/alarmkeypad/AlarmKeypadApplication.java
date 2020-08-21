@@ -9,5 +9,4 @@ public class AlarmKeypadApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AlarmKeypadApplication.class, args);
 	}
-
 }

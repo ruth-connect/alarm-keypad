@@ -9,5 +9,4 @@ class AlarmKeypadApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

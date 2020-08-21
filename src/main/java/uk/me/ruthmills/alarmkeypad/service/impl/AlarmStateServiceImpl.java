@@ -170,18 +170,18 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			if (!alarmState.equals(COUNTDOWN) && !alarmState.equals(TRIGGERED)) {
 				if (getStateName(key).equals("armed_away") || getStateName(key).equals("armed_night")) {
 					logger.info("Grace period entered for state change to: " + getStateName(key));
-					beep(200);
+					beep(250);
 					requestedExitState = getState(key);
 					requestedExitTime = new Date();
 					requestedCode = code.toString();
 					setLedForState(requestedExitState);
 					sendCommand("validate", requestedCode);
 				} else {
-					beep(200);
+					beep(250);
 					sendCommand(getStateName(key), code.toString());
 				}
 			} else if (getStateName(key).equals("disarmed")) {
-				beep(200);
+				beep(250);
 				sendCommand(getStateName(key), code.toString());
 			}
 			lastKeyPressTime = null;
@@ -275,7 +275,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		logger.info("Hash key pressed. Showing current state: " + getStateName(alarmState));
 		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
 				alarmState.equals(DISARMED));
-		beep(200);
+		beep(250);
 	}
 
 	private void showCodeLength() {

@@ -442,10 +442,10 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private boolean beforeExitWarningTime() {
-		return requestedExitTime != null && new Date().getTime() - lastKeyPressTime.getTime() < EXIT_WARNING_TIMEOUT;
+		return requestedExitTime != null && new Date().getTime() - requestedExitTime.getTime() < EXIT_WARNING_TIMEOUT;
 	}
 
 	private boolean beforeExitTime() {
-		return new Date().getTime() - lastKeyPressTime.getTime() < EXIT_TIMEOUT;
+		return requestedExitTime != null && new Date().getTime() - requestedExitTime.getTime() < EXIT_TIMEOUT;
 	}
 }

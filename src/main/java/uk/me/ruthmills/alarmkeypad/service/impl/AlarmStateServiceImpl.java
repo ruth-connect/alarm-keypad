@@ -232,7 +232,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		StringBuilder requestJson = new StringBuilder();
 		requestJson.append("{\"state\": \"");
 		requestJson.append(state);
-		requestJson.append(" ");
+		if (code.length() > 0) {
+			requestJson.append(" ");
+		}
 		requestJson.append(code);
 		requestJson.append("\"}");
 		logger.info("JSON to send: " + requestJson);
@@ -241,8 +243,10 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + token);
 
+		logger.info("About to send POST to " + endpoint);
 		restTemplate.postForEntity(endpoint, new HttpEntity<String>(requestJson.toString(), headers), String.class);
 
+		logger.info("About to send DELETE to " + endpoint);
 		restTemplate.delete(endpoint, new HttpEntity<String>("", headers));
 	}
 

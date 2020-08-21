@@ -14,6 +14,8 @@ public interface AlarmStateService {
 
 	public void triggered();
 
+	public void invalidCode();
+
 	public void keyPressed(char key);
 
 	public void tick();

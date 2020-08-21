@@ -129,6 +129,13 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	@Override
+	public void invalidCode() {
+		requestedExitTime = null;
+		requestedExitState = null;
+		logger.info("Invalid Code entered");
+	}
+
+	@Override
 	public void keyPressed(char key) {
 		cancelExit();
 		logger.info("Key pressed: " + key);
@@ -160,6 +167,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 					requestedExitState = getState(key);
 					requestedExitTime = new Date();
 					setLedForState(requestedExitState);
+					sendCommand("validate");
 				} else {
 					beep(200);
 					sendCommand(getStateName(key));

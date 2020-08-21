@@ -136,11 +136,18 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private void handleCommand(char key) {
 		if (code.length() > 0) {
-			beep(200);
-			if (getCommand(key).equals("armed_away") || getCommand(key).equals("armed_night")) {
-				requestedExitState = getState(key);
-				requestedExitTime = new Date();
-			} else {
+			if (!alarmState.equals(COUNTDOWN) && !alarmState.equals(TRIGGERED)) {
+				if (getCommand(key).equals("armed_away") || getCommand(key).equals("armed_night")) {
+					beep(200);
+					requestedExitState = getState(key);
+					requestedExitTime = new Date();
+					setLedForState(requestedExitState);
+				} else {
+					beep(200);
+					sendCommand(getCommand(key));
+				}
+			} else if (getCommand(key).equals("disarmed")) {
+				beep(200);
 				sendCommand(getCommand(key));
 			}
 			lastKeyPressTime = null;

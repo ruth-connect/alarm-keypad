@@ -289,7 +289,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	@Override
 	public void tick() {
+		logger.info("TICK!");
 		if (!keyPressed()) {
+			logger.info("Key NOT pressed in last 5 seconds");
 			clearCode();
 			if (alarmState.equals(TRIGGERED)) {
 				flashTriggered();

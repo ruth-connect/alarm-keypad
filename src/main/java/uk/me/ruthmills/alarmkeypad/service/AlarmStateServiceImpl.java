@@ -8,6 +8,7 @@ import static uk.me.ruthmills.alarmkeypad.model.AlarmState.DISARMED;
 import static uk.me.ruthmills.alarmkeypad.model.AlarmState.TRIGGERED;
 import static uk.me.ruthmills.alarmkeypad.model.AlarmState.UNKNOWN;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.annotation.PostConstruct;
@@ -49,7 +50,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private volatile StringBuilder code;
 	private volatile Date lastKeyPressTime;
 	private volatile Date lastStateChangeTime;
-	private volatile int ledCount;
 	private volatile RestTemplate restTemplate;
 
 	@PostConstruct
@@ -121,7 +121,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		code.append(key);
 		ledService.setLeds(code.length() % 4 >= 1, code.length() % 4 >= 2, code.length() % 4 >= 3,
 				code.length() > 0 && code.length() % 4 == 0);
-		ledCount = 0;
 		beep(100);
 	}
 
@@ -167,7 +166,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			code.delete(code.length() - 1, code.length());
 			ledService.setLeds(code.length() % 4 == 1, code.length() % 4 == 2, code.length() % 4 == 3,
 					code.length() > 0 && code.length() % 4 == 0);
-			ledCount = 0;
 			beep(100);
 		}
 	}
@@ -178,7 +176,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		lastStateChangeTime = new Date();
 		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
 				alarmState.equals(DISARMED));
-		ledCount = 0;
 		beep(200);
 	}
 
@@ -210,7 +207,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		flash(250, false, false, false, false);
 		flash(250, true, true, true, true);
 		flash(0, false, false, false, false);
-		ledCount = 0;
 	}
 
 	private void flashCountdown() {
@@ -218,7 +214,6 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		flash(250, false, false, true, false);
 		flash(250, false, true, false, false);
 		flash(0, true, false, false, false);
-		ledCount = 0;
 	}
 
 	private void flashState() {
@@ -228,20 +223,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		flash(250, alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
 				alarmState.equals(DISARMED));
 		flash(250, false, false, false, false);
-		ledCount = 0;
 	}
 
 	private void flashNormal() {
-		flash(500, ledCount == 0, ledCount == 1, ledCount == 2, ledCount == 3);
-		incrementLedCount();
-		flash(0, ledCount == 0, ledCount == 1, ledCount == 2, ledCount == 3);
-		incrementLedCount();
-	}
-
-	private void incrementLedCount() {
-		ledCount++;
-		if (ledCount > 3) {
-			ledCount = 0;
+		if (LocalDateTime.now().getSecond() % 4 == 0) {
+			flash(500, true, false, false, false);
 		}
 	}
 

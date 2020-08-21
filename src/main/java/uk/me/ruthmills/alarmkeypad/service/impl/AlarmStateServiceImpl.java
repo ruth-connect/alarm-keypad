@@ -60,6 +60,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private volatile Date lastStateChangeTime;
 	private volatile Date requestedExitTime;
 	private volatile AlarmState requestedExitState;
+	private volatile String requestedCode;
 
 	private RestTemplate restTemplate;
 	private final Logger logger = LoggerFactory.getLogger(AlarmStateServiceImpl.class);
@@ -70,7 +71,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		code = new StringBuilder();
 		restTemplate = new RestTemplate(getClientHttpRequestFactory());
 		try {
-			sendCommand("initialise");
+			sendCommand("initialise", "");
 		} catch (Exception ex) {
 			logger.error("Failed to send initialise command", ex);
 		}
@@ -137,6 +138,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void invalidCode() {
 		requestedExitTime = null;
 		requestedExitState = null;
+		requestedCode = null;
 		logger.info("Invalid Code entered");
 	}
 
@@ -171,15 +173,16 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 					beep(200);
 					requestedExitState = getState(key);
 					requestedExitTime = new Date();
+					requestedCode = code.toString();
 					setLedForState(requestedExitState);
-					sendCommand("validate");
+					sendCommand("validate", requestedCode);
 				} else {
 					beep(200);
-					sendCommand(getStateName(key));
+					sendCommand(getStateName(key), code.toString());
 				}
 			} else if (getStateName(key).equals("disarmed")) {
 				beep(200);
-				sendCommand(getStateName(key));
+				sendCommand(getStateName(key), code.toString());
 			}
 			lastKeyPressTime = null;
 			clearCode();
@@ -231,7 +234,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		}
 	}
 
-	private void sendCommand(String state) {
+	private void sendCommand(String state, String code) {
 		logger.info("Sending command to update state to: " + state);
 
 		StringBuilder requestJson = new StringBuilder();
@@ -305,7 +308,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 				} else {
 					logger.info("Grace period expired");
 					requestedExitTime = null;
-					sendCommand(getStateName(requestedExitState));
+					sendCommand(getStateName(requestedExitState), requestedCode);
 					cancelExit();
 				}
 			}
@@ -398,6 +401,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void cancelExit() {
 		requestedExitTime = null;
 		requestedExitState = null;
+		requestedCode = null;
 	}
 
 	private void setLedForState(AlarmState state) {

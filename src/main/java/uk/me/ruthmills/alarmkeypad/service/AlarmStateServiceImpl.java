@@ -119,9 +119,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void handleCodeNumber(char key) {
 		lastKeyPressTime = new Date();
 		code.append(key);
-		ledService.setLeds(code.length() % 4 >= 1, code.length() % 4 >= 2, code.length() % 4 >= 3,
-				code.length() > 0 && code.length() % 4 == 0);
-		beep(100);
+		showCodeLength();
 	}
 
 	private void handleCommand(char key) {
@@ -164,8 +162,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		if (code.length() > 0) {
 			lastKeyPressTime = new Date();
 			code.delete(code.length() - 1, code.length());
-			ledService.setLeds(code.length() % 4 == 1, code.length() % 4 == 2, code.length() % 4 == 3,
-					code.length() > 0 && code.length() % 4 == 0);
+			showCodeLength();
 			beep(100);
 		}
 	}
@@ -177,6 +174,12 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
 				alarmState.equals(DISARMED));
 		beep(200);
+	}
+
+	private void showCodeLength() {
+		ledService.setLeds(code.length() % 8 >= 5 ^ code.length() % 4 == 1,
+				code.length() % 8 >= 5 ^ code.length() % 4 == 2, code.length() % 8 >= 5 ^ code.length() % 4 == 3,
+				code.length() % 8 >= 5 ^ code.length() > 0 && code.length() % 4 == 0);
 	}
 
 	private void clearCode() {
@@ -227,7 +230,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private void flashNormal() {
 		if (LocalDateTime.now().getSecond() % 4 == 0) {
-			flash(500, true, false, false, false);
+			flash(250, true, false, false, false);
 		}
 	}
 

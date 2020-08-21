@@ -1,4 +1,4 @@
-package uk.me.ruthmills.alarmkeypad.service;
+package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinPullResistance.PULL_UP;
 import static com.pi4j.io.gpio.PinState.HIGH;
@@ -22,6 +22,9 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
+
+import uk.me.ruthmills.alarmkeypad.service.AlarmKeypadService;
+import uk.me.ruthmills.alarmkeypad.service.AlarmStateService;
 
 @Service
 public class AlarmKeypadServiceImpl implements AlarmKeypadService {

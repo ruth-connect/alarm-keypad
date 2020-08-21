@@ -1,4 +1,4 @@
-package uk.me.ruthmills.alarmkeypad.service;
+package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinState.HIGH;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_04;
@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+
+import uk.me.ruthmills.alarmkeypad.service.LedService;
 
 @Service
 public class LedServiceImpl implements LedService {

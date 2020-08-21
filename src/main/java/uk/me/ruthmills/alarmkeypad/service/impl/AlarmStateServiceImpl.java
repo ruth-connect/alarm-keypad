@@ -1,4 +1,4 @@
-package uk.me.ruthmills.alarmkeypad.service;
+package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static uk.me.ruthmills.alarmkeypad.model.AlarmState.ARMED_AWAY;
 import static uk.me.ruthmills.alarmkeypad.model.AlarmState.ARMED_HOME;
@@ -29,6 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import uk.me.ruthmills.alarmkeypad.model.AlarmState;
+import uk.me.ruthmills.alarmkeypad.service.AlarmStateService;
+import uk.me.ruthmills.alarmkeypad.service.BuzzerService;
+import uk.me.ruthmills.alarmkeypad.service.LedService;
 
 @Service
 public class AlarmStateServiceImpl implements AlarmStateService {

@@ -37,7 +37,7 @@ import uk.me.ruthmills.alarmkeypad.service.LedService;
 @Service
 public class AlarmStateServiceImpl implements AlarmStateService {
 
-	private static final long STATE_CHANGE_TIMEOUT = 10000L;
+	private static final long STATE_CHANGE_TIMEOUT = 6000L;
 	private static final long KEY_PRESS_TIMEOUT = 5000L;
 	private static final long EXIT_WARNING_TIMEOUT = 30000L;
 	private static final long EXIT_TIMEOUT = 40000L;
@@ -342,52 +342,29 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashExit() {
-		if (LocalDateTime.now().getSecond() % 2 == 0) {
-			if (!keyPressed()) {
-				setLedForState(requestedExitState);
-				beep(250);
-			}
-			flash(250, false, false, false, false);
-			if (!keyPressed()) {
-				setLedForState(requestedExitState);
-				sleep(250);
-			}
-			flash(0, false, false, false, false);
-		} else {
-			if (!keyPressed()) {
-				ledService.setLeds(true, false, false, false);
-				beep(250);
-			}
-			flash(250, false, true, false, false);
-			flash(250, false, false, true, false);
-			flash(0, false, false, false, true);
+		if (!keyPressed()) {
+			setLedForState(requestedExitState);
+			beep(250);
 		}
+		flash(250, false, false, false, false);
+		if (!keyPressed()) {
+			setLedForState(requestedExitState);
+			sleep(250);
+		}
+		flash(0, false, false, false, false);
 	}
 
 	private void flashExitWarning() {
-		if (LocalDateTime.now().getSecond() % 2 == 0) {
-			if (!keyPressed()) {
-				setLedForState(requestedExitState);
-				beep(250);
-			}
-			flash(250, false, false, false, false);
-			if (!keyPressed()) {
-				setLedForState(requestedExitState);
-				beep(250);
-			}
-			flash(0, false, false, false, false);
-		} else {
-			if (!keyPressed()) {
-				ledService.setLeds(true, false, false, false);
-				beep(250);
-			}
-			flash(250, false, true, false, false);
-			if (!keyPressed()) {
-				ledService.setLeds(false, false, true, false);
-				beep(250);
-			}
-			flash(0, false, false, false, true);
+		if (!keyPressed()) {
+			setLedForState(requestedExitState);
+			beep(250);
 		}
+		flash(250, false, false, false, false);
+		if (!keyPressed()) {
+			setLedForState(requestedExitState);
+			beep(250);
+		}
+		flash(0, false, false, false, false);
 	}
 
 	private void flashNormal() {

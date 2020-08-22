@@ -1,10 +1,10 @@
 package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinState.HIGH;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_02;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_07;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_08;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_09;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_10;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -39,7 +39,7 @@ public class LedServiceImpl implements LedService {
 		greenLed = gpio.provisionDigitalOutputPin(GPIO_07, "Green LED", HIGH);
 		greenLed.setShutdownOptions(true, HIGH);
 
-		blueLed = gpio.provisionDigitalOutputPin(GPIO_02, "Blue LED", HIGH);
+		blueLed = gpio.provisionDigitalOutputPin(GPIO_10, "Blue LED", HIGH);
 		blueLed.setShutdownOptions(true, HIGH);
 	}
 

@@ -41,6 +41,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private static final long KEY_PRESS_TIMEOUT = 5000L;
 	private static final long EXIT_WARNING_TIMEOUT = 30000L;
 	private static final long EXIT_TIMEOUT = 40000L;
+	private static final long COUNTDOWN_WARNING_TIMEOUT = 20000L;
 
 	@Autowired
 	private BuzzerService buzzerService;
@@ -298,7 +299,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			if (alarmState.equals(TRIGGERED)) {
 				flashTriggered();
 			} else if (alarmState.equals(COUNTDOWN)) {
-				flashCountdown();
+				if (beforeCountdownWarningTime()) {
+					flashCountdown();
+				} else {
+					flashCountdownWarning();
+				}
 			} else if (exitRequested()) {
 				if (beforeExitWarningTime()) {
 					flashExit();
@@ -326,9 +331,25 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashCountdown() {
-		flash(250, false, false, false, true);
+		if (!keyPressed()) {
+			ledService.setLeds(false, false, false, true);
+			beep(250);
+		}
 		flash(250, false, false, true, false);
 		flash(250, false, true, false, false);
+		flash(0, true, false, false, false);
+	}
+
+	private void flashCountdownWarning() {
+		if (!keyPressed()) {
+			ledService.setLeds(false, false, false, true);
+			beep(250);
+		}
+		flash(250, false, false, true, false);
+		if (!keyPressed()) {
+			ledService.setLeds(false, true, false, false);
+			beep(250);
+		}
 		flash(0, true, false, false, false);
 	}
 
@@ -429,5 +450,10 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private boolean beforeExitTime() {
 		return requestedExitTime != null && new Date().getTime() - requestedExitTime.getTime() < EXIT_TIMEOUT;
+	}
+
+	private boolean beforeCountdownWarningTime() {
+		return lastStateChangeTime != null
+				&& new Date().getTime() - lastStateChangeTime.getTime() < COUNTDOWN_WARNING_TIMEOUT;
 	}
 }

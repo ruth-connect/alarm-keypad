@@ -2,9 +2,9 @@ package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinState.HIGH;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_00;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_02;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_03;
 import static com.pi4j.io.gpio.RaspiPin.GPIO_07;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_08;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_09;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -30,16 +30,16 @@ public class LedServiceImpl implements LedService {
 	public void initialise() {
 		gpio = GpioFactory.getInstance();
 
-		redLed = gpio.provisionDigitalOutputPin(GPIO_07, "Red LED", HIGH);
+		redLed = gpio.provisionDigitalOutputPin(GPIO_08, "Red LED", HIGH);
 		redLed.setShutdownOptions(true, HIGH);
 
-		amberLed = gpio.provisionDigitalOutputPin(GPIO_00, "Amber LED", HIGH);
+		amberLed = gpio.provisionDigitalOutputPin(GPIO_09, "Amber LED", HIGH);
 		amberLed.setShutdownOptions(true, HIGH);
 
-		greenLed = gpio.provisionDigitalOutputPin(GPIO_02, "Green LED", HIGH);
+		greenLed = gpio.provisionDigitalOutputPin(GPIO_07, "Green LED", HIGH);
 		greenLed.setShutdownOptions(true, HIGH);
 
-		blueLed = gpio.provisionDigitalOutputPin(GPIO_03, "Blue LED", HIGH);
+		blueLed = gpio.provisionDigitalOutputPin(GPIO_00, "Blue LED", HIGH);
 		blueLed.setShutdownOptions(true, HIGH);
 	}
 

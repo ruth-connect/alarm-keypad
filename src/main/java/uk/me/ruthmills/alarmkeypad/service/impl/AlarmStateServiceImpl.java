@@ -281,7 +281,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void showCodeLength() {
 		ledService.setLeds(code.length() % 8 >= 5 ^ code.length() % 4 >= 1,
 				code.length() % 8 >= 5 ^ code.length() % 4 >= 2, code.length() % 8 >= 5 ^ code.length() % 4 >= 3,
-				code.length() % 8 >= 5 ^ code.length() > 0 && code.length() % 4 == 0);
+				code.length() % 8 >= 5 ^ code.length() > 0 && code.length() % 8 == 0);
 	}
 
 	private void clearCode() {

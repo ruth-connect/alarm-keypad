@@ -146,7 +146,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void keyPressed(char key) {
 		cancelExit();
 		logger.info("Key pressed: " + key);
-		if (key >= '0' && key <= '9') {
+		if (key >= '0' && key <= '9' && code.length() <= 8) {
 			handleCodeNumber(key);
 		} else if (key >= 'A' && key <= 'D') {
 			handleCommand(key);
@@ -281,7 +281,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void showCodeLength() {
 		ledService.setLeds(code.length() % 8 >= 5 ^ code.length() % 4 >= 1,
 				code.length() % 8 >= 5 ^ code.length() % 4 >= 2, code.length() % 8 >= 5 ^ code.length() % 4 >= 3,
-				code.length() % 8 >= 5 ^ code.length() > 0 && code.length() % 8 == 0);
+				code.length() % 8 >= 4 ^ code.length() % 8 == 0);
 	}
 
 	private void clearCode() {
@@ -403,8 +403,10 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void setLedForState(AlarmState state) {
-		ledService.setLeds(state.equals(ARMED_AWAY), state.equals(ARMED_NIGHT), state.equals(ARMED_HOME),
-				state.equals(DISARMED));
+		if (!keyPressed()) {
+			ledService.setLeds(state.equals(ARMED_AWAY), state.equals(ARMED_NIGHT), state.equals(ARMED_HOME),
+					state.equals(DISARMED));
+		}
 	}
 
 	@Override

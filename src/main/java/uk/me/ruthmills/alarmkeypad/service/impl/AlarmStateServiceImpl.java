@@ -39,8 +39,8 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private static final long STATE_CHANGE_TIMEOUT = 10000L;
 	private static final long KEY_PRESS_TIMEOUT = 5000L;
-	private static final long EXIT_WARNING_TIMEOUT = 50000L;
-	private static final long EXIT_TIMEOUT = 60000L;
+	private static final long EXIT_WARNING_TIMEOUT = 30000L;
+	private static final long EXIT_TIMEOUT = 40000L;
 
 	@Autowired
 	private BuzzerService buzzerService;
@@ -146,7 +146,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void keyPressed(char key) {
 		cancelExit();
 		logger.info("Key pressed: " + key);
-		if (key >= '0' && key <= '9' && code.length() <= 8) {
+		if (key >= '0' && key <= '9') {
 			handleCodeNumber(key);
 		} else if (key >= 'A' && key <= 'D') {
 			handleCommand(key);
@@ -158,7 +158,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void handleCodeNumber(char key) {
-		lastKeyPressTime = new Date();
+		if (code.length() < 8) {
+			lastKeyPressTime = new Date();
+		}
 		code.append(key);
 		logger.info("Code entered: " + code.toString());
 		showCodeLength();

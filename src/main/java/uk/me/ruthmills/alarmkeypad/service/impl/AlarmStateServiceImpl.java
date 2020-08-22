@@ -160,11 +160,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void handleCodeNumber(char key) {
 		if (code.length() < 8) {
 			lastKeyPressTime = new Date();
+			code.append(key);
+			logger.info("Code entered: " + code.toString());
+			showCodeLength();
+			beep(100);
 		}
-		code.append(key);
-		logger.info("Code entered: " + code.toString());
-		showCodeLength();
-		beep(100);
 	}
 
 	private void handleCommand(char key) {

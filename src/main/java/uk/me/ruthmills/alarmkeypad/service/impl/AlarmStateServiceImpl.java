@@ -64,6 +64,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private volatile Date requestedExitTime;
 	private volatile AlarmState requestedExitState;
 	private volatile String requestedCode;
+	private volatile boolean noNormalFlashNext;
 
 	private RestTemplate restTemplate;
 	private final Logger logger = LoggerFactory.getLogger(AlarmStateServiceImpl.class);
@@ -330,6 +331,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		flash(250, false, false, false, false);
 		flash(250, true, true, true, true);
 		flash(0, false, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashCountdown() {
@@ -340,6 +342,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		flash(250, false, false, true, false);
 		flash(250, false, true, false, false);
 		flash(0, true, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashCountdownWarning() {
@@ -353,6 +356,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			beep(250);
 		}
 		flash(0, true, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashState() {
@@ -362,6 +366,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		setLedForState(alarmState);
 		sleep(250);
 		flash(0, false, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashExit() {
@@ -375,6 +380,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			sleep(250);
 		}
 		flash(0, false, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashExitWarning() {
@@ -388,13 +394,15 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			beep(250);
 		}
 		flash(0, false, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashNormal() {
-		if (!commandRequested() && LocalDateTime.now().getSecond() % 4 == 0) {
+		if (!commandRequested() && LocalDateTime.now().getSecond() % 4 == 0 && !noNormalFlashNext) {
 			flash(250, true, false, false, false);
 		} else {
 			flash(250, false, false, false, false);
+			noNormalFlashNext = false;
 		}
 		flash(250, false, false, false, false);
 		flash(250, false, false, false, false);

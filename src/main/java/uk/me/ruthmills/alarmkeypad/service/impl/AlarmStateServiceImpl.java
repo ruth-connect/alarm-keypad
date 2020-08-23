@@ -39,6 +39,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private static final long STATE_CHANGE_TIMEOUT = 6000L;
 	private static final long KEY_PRESS_TIMEOUT = 5000L;
+	private static final long COMMAND_TIMEOUT = 4000L;
 	private static final long EXIT_WARNING_TIMEOUT = 30000L;
 	private static final long EXIT_TIMEOUT = 40000L;
 	private static final long COUNTDOWN_WARNING_TIMEOUT = 20000L;
@@ -58,6 +59,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private volatile AlarmState alarmState;
 	private volatile StringBuilder code;
 	private volatile Date lastKeyPressTime;
+	private volatile Date lastCommandTime;
 	private volatile Date lastStateChangeTime;
 	private volatile Date requestedExitTime;
 	private volatile AlarmState requestedExitState;
@@ -176,9 +178,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 					requestedExitTime = new Date();
 					requestedCode = code.toString();
 					setLedForState(requestedExitState);
+					lastCommandTime = new Date();
 					sendCommand("validate", requestedCode);
 				} else {
 					beep(250);
+					lastCommandTime = new Date();
 					sendCommand(getStateName(key), code.toString());
 				}
 			} else if (getStateName(key).equals("disarmed")) {
@@ -387,7 +391,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashNormal() {
-		if (LocalDateTime.now().getSecond() % 4 == 0) {
+		if (!commandRequested() && LocalDateTime.now().getSecond() % 4 == 0) {
 			flash(250, true, false, false, false);
 		} else {
 			flash(250, false, false, false, false);
@@ -433,13 +437,17 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 		}
 	}
 
+	private boolean stateChanged() {
+		return lastStateChangeTime != null
+				&& new Date().getTime() - lastStateChangeTime.getTime() < STATE_CHANGE_TIMEOUT;
+	}
+
 	private boolean keyPressed() {
 		return lastKeyPressTime != null && new Date().getTime() - lastKeyPressTime.getTime() < KEY_PRESS_TIMEOUT;
 	}
 
-	private boolean stateChanged() {
-		return lastStateChangeTime != null
-				&& new Date().getTime() - lastStateChangeTime.getTime() < STATE_CHANGE_TIMEOUT;
+	private boolean commandRequested() {
+		return lastCommandTime != null && new Date().getTime() - lastCommandTime.getTime() < COMMAND_TIMEOUT;
 	}
 
 	private boolean exitRequested() {

@@ -327,36 +327,42 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashTriggered() {
-		flash(250, true, true, true, true);
-		flash(250, false, false, false, false);
-		flash(250, true, true, true, true);
-		flash(0, false, false, false, false);
-		noNormalFlashNext = true;
+		if (!commandRequested()) {
+			flash(250, true, true, true, true);
+			flash(250, false, false, false, false);
+			flash(250, true, true, true, true);
+			flash(0, false, false, false, false);
+			noNormalFlashNext = true;
+		}
 	}
 
 	private void flashCountdown() {
-		if (!keyPressed()) {
-			ledService.setLeds(false, false, false, true);
-			beep(250);
+		if (!commandRequested()) {
+			if (!keyPressed()) {
+				ledService.setLeds(false, false, false, true);
+				beep(250);
+			}
+			flash(250, false, false, true, false);
+			flash(250, false, true, false, false);
+			flash(0, true, false, false, false);
+			noNormalFlashNext = true;
 		}
-		flash(250, false, false, true, false);
-		flash(250, false, true, false, false);
-		flash(0, true, false, false, false);
-		noNormalFlashNext = true;
 	}
 
 	private void flashCountdownWarning() {
-		if (!keyPressed()) {
-			ledService.setLeds(false, false, false, true);
-			beep(250);
+		if (!commandRequested()) {
+			if (!keyPressed()) {
+				ledService.setLeds(false, false, false, true);
+				beep(250);
+			}
+			flash(250, false, false, true, false);
+			if (!keyPressed()) {
+				ledService.setLeds(false, true, false, false);
+				beep(250);
+			}
+			flash(0, true, false, false, false);
+			noNormalFlashNext = true;
 		}
-		flash(250, false, false, true, false);
-		if (!keyPressed()) {
-			ledService.setLeds(false, true, false, false);
-			beep(250);
-		}
-		flash(0, true, false, false, false);
-		noNormalFlashNext = true;
 	}
 
 	private void flashState() {

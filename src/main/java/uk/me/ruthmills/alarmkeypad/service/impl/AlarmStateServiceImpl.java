@@ -389,8 +389,12 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void flashNormal() {
 		if (LocalDateTime.now().getSecond() % 4 == 0) {
 			flash(250, true, false, false, false);
-			flash(0, false, false, false, false);
+		} else {
+			flash(250, false, false, false, false);
 		}
+		flash(250, false, false, false, false);
+		flash(250, false, false, false, false);
+		flash(0, false, false, false, false);
 	}
 
 	private void cancelExit() {

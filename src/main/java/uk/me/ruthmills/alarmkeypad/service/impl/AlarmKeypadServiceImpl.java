@@ -14,6 +14,8 @@ import static com.pi4j.io.gpio.RaspiPin.GPIO_29;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,8 @@ public class AlarmKeypadServiceImpl implements AlarmKeypadService {
 	private volatile GpioPinDigitalOutput[] columns;
 	private volatile GpioPinDigitalInput[] rows;
 	private volatile boolean shutdown;
+
+	private final Logger logger = LoggerFactory.getLogger(AlarmKeypadServiceImpl.class);
 
 	@PostConstruct
 	public void initialise() {
@@ -73,19 +77,23 @@ public class AlarmKeypadServiceImpl implements AlarmKeypadService {
 		@Override
 		public void run() {
 			while (!shutdown) {
-				for (int col = 0; col < columns.length; col++) {
-					columns[col].low();
-					for (int row = 0; row < rows.length; row++) {
-						if (rows[row].isLow()) {
-							alarmStateService.keyPressed(MATRIX[row][col]);
-							while (rows[row].isLow()) {
-								alarmStateService.sleep(10);
+				try {
+					for (int col = 0; col < columns.length; col++) {
+						columns[col].low();
+						for (int row = 0; row < rows.length; row++) {
+							if (rows[row].isLow()) {
+								alarmStateService.keyPressed(MATRIX[row][col]);
+								while (rows[row].isLow()) {
+									alarmStateService.sleep(10);
+								}
 							}
 						}
+						columns[col].high();
 					}
-					columns[col].high();
+					alarmStateService.sleep(10);
+				} catch (Exception ex) {
+					logger.error("Exception in alarm keypad thread", ex);
 				}
-				alarmStateService.sleep(10);
 			}
 
 			gpio.shutdown();

@@ -198,6 +198,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 			} else if (getStateName(key).equals("disarmed")) {
 				beep(250);
 				lastCommandTime = new Date();
+				ledService.setLeds(false, false, false, false);
 				sendCommand(getStateName(key), code.toString());
 			}
 			lastKeyPressTime = null;
@@ -286,12 +287,11 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	private void handleShowState() {
 		clearCode();
+		logger.info("Hash key pressed. Showing current state: " + getStateName(alarmState));
+		beep(250);
 		lastKeyPressTime = null;
 		lastStateChangeTime = new Date();
-		logger.info("Hash key pressed. Showing current state: " + getStateName(alarmState));
-		ledService.setLeds(alarmState.equals(ARMED_AWAY), alarmState.equals(ARMED_NIGHT), alarmState.equals(ARMED_HOME),
-				alarmState.equals(DISARMED));
-		beep(250);
+		ledService.setLeds(false, false, false, false);
 	}
 
 	private void showCodeLength() {

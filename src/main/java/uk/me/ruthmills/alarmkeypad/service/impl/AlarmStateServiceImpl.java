@@ -94,6 +94,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void armedAway() {
 		alarmState = ARMED_AWAY;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to armed_away");
 	}
@@ -102,6 +103,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void armedNight() {
 		alarmState = ARMED_NIGHT;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to armed_night");
 	}
@@ -110,6 +112,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void armedHome() {
 		alarmState = ARMED_HOME;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to armed_home");
 	}
@@ -118,6 +121,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void disarmed() {
 		alarmState = DISARMED;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to disarmed");
 	}
@@ -126,6 +130,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void countdown() {
 		alarmState = COUNTDOWN;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to countdown");
 	}
@@ -134,6 +139,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	public void triggered() {
 		alarmState = TRIGGERED;
 		lastStateChangeTime = new Date();
+		lastCommandTime = null;
 		cancelExit();
 		logger.info("Alarm State set to triggered");
 	}
@@ -327,42 +333,36 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashTriggered() {
-		if (!commandRequested()) {
-			flash(250, true, true, true, true);
-			flash(250, false, false, false, false);
-			flash(250, true, true, true, true);
-			flash(0, false, false, false, false);
-			noNormalFlashNext = true;
-		}
+		flash(250, true, true, true, true);
+		flash(250, false, false, false, false);
+		flash(250, true, true, true, true);
+		flash(0, false, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashCountdown() {
-		if (!commandRequested()) {
-			if (!keyPressed()) {
-				ledService.setLeds(false, false, false, true);
-				beep(250);
-			}
-			flash(250, false, false, true, false);
-			flash(250, false, true, false, false);
-			flash(0, true, false, false, false);
-			noNormalFlashNext = true;
+		if (!keyPressed() && !commandRequested()) {
+			ledService.setLeds(false, false, false, true);
+			beep(250);
 		}
+		flash(250, false, false, true, false);
+		flash(250, false, true, false, false);
+		flash(0, true, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashCountdownWarning() {
-		if (!commandRequested()) {
-			if (!keyPressed()) {
-				ledService.setLeds(false, false, false, true);
-				beep(250);
-			}
-			flash(250, false, false, true, false);
-			if (!keyPressed()) {
-				ledService.setLeds(false, true, false, false);
-				beep(250);
-			}
-			flash(0, true, false, false, false);
-			noNormalFlashNext = true;
+		if (!keyPressed() && !commandRequested()) {
+			ledService.setLeds(false, false, false, true);
+			beep(250);
 		}
+		flash(250, false, false, true, false);
+		if (!keyPressed() && !commandRequested()) {
+			ledService.setLeds(false, true, false, false);
+			beep(250);
+		}
+		flash(0, true, false, false, false);
+		noNormalFlashNext = true;
 	}
 
 	private void flashState() {
@@ -404,7 +404,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flashNormal() {
-		if (!commandRequested() && LocalDateTime.now().getSecond() % 4 == 0 && !noNormalFlashNext) {
+		if (LocalDateTime.now().getSecond() % 4 == 0 && !noNormalFlashNext) {
 			flash(250, true, false, false, false);
 		} else {
 			flash(250, false, false, false, false);
@@ -445,7 +445,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	}
 
 	private void flash(int milliseconds, boolean red, boolean amber, boolean green, boolean blue) {
-		if (!keyPressed()) {
+		if (!keyPressed() && !commandRequested()) {
 			ledService.setLeds(red, amber, green, blue);
 			sleep(milliseconds);
 		}

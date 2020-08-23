@@ -178,7 +178,9 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 	private void handleCommand(char key) {
 		if (code.length() > 0) {
 			if (!alarmState.equals(COUNTDOWN) && !alarmState.equals(TRIGGERED)) {
-				if (getStateName(key).equals("armed_away") || getStateName(key).equals("armed_night")) {
+				if (getState(key).equals(alarmState)) {
+					handleShowState();
+				} else if (getStateName(key).equals("armed_away") || getStateName(key).equals("armed_night")) {
 					logger.info("Grace period entered for state change to: " + getStateName(key));
 					beep(250);
 					requestedExitState = getState(key);
@@ -195,6 +197,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 				}
 			} else if (getStateName(key).equals("disarmed")) {
 				beep(250);
+				lastCommandTime = new Date();
 				sendCommand(getStateName(key), code.toString());
 			}
 			lastKeyPressTime = null;

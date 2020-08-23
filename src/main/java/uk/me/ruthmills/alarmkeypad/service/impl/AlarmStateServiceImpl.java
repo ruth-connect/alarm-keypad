@@ -184,12 +184,13 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 					requestedExitState = getState(key);
 					requestedExitTime = new Date();
 					requestedCode = code.toString();
-					setLedForState(requestedExitState);
-					lastCommandTime = new Date();
+					lastCommandTime = null;
+					ledService.setLeds(false, false, false, false);
 					sendCommand("validate", requestedCode);
 				} else {
 					beep(250);
 					lastCommandTime = new Date();
+					ledService.setLeds(false, false, false, false);
 					sendCommand(getStateName(key), code.toString());
 				}
 			} else if (getStateName(key).equals("disarmed")) {

@@ -137,9 +137,7 @@ public class AlarmStateServiceImpl implements AlarmStateService {
 
 	@Override
 	public void invalidCode() {
-		requestedExitTime = null;
-		requestedExitState = null;
-		requestedCode = null;
+		cancelExit();
 		logger.info("Invalid Code entered");
 	}
 

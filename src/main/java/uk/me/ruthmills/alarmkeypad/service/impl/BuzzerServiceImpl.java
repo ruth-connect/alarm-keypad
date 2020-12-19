@@ -1,7 +1,7 @@
 package uk.me.ruthmills.alarmkeypad.service.impl;
 
 import static com.pi4j.io.gpio.PinState.LOW;
-import static com.pi4j.io.gpio.RaspiPin.GPIO_01;
+import static com.pi4j.io.gpio.RaspiPin.GPIO_03;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -24,7 +24,7 @@ public class BuzzerServiceImpl implements BuzzerService {
 	public void initialise() {
 		gpio = GpioFactory.getInstance();
 
-		buzzer = gpio.provisionDigitalOutputPin(GPIO_01, "Buzzer", LOW);
+		buzzer = gpio.provisionDigitalOutputPin(GPIO_03, "Buzzer", LOW);
 		buzzer.setShutdownOptions(true, LOW);
 	}
 

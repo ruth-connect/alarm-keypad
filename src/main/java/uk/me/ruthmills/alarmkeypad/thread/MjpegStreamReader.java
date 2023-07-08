@@ -8,7 +8,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
 import javax.annotation.PostConstruct;
 
@@ -111,7 +110,7 @@ public class MjpegStreamReader implements Runnable {
 	private void handleNewFrame() {
 		try {
 			LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-			String nowFormatted = now.format(DateTimeFormatter.ISO_DATE_TIME);
+			String nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
 			TiffOutputSet outputSet = new TiffOutputSet();
 			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
 

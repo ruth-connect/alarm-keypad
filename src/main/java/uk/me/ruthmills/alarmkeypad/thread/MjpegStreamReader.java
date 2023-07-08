@@ -11,7 +11,10 @@ import java.time.ZoneOffset;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
@@ -109,19 +112,21 @@ public class MjpegStreamReader implements Runnable {
 
 	private void handleNewFrame() {
 		try {
-			LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+			LocalDateTime now = LocalDateTime.now();
 			String nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
-			TiffOutputSet outputSet = new TiffOutputSet();
+			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(currentFrame);
+			TiffImageMetadata exif = imageMetadata.getExif();
+			TiffOutputSet outputSet = exif.getOutputSet();
 			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
 
-			// Use the APPLICATION_NOTES tag for the timestamp in milliseconds.
-			exifDirectory.add(ExifTagConstants.EXIF_TAG_APPLICATION_NOTES, nowFormatted.getBytes());
+			// Use the Owner Name tag to store the timestamp in milliseconds.
+			exifDirectory.add(ExifTagConstants.EXIF_TAG_OWNER_NAME, nowFormatted);
 			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE)) {
 				// Create a copy of the JPEG image with EXIF metadata added.
 				new ExifRewriter().updateExifMetadataLossy(currentFrame, exifOutputStream, outputSet);
 
 				// Set the next image in the image service.
-				imageService.setNextImage(outputStream.toByteArray());
+				imageService.setNextImage(exifOutputStream.toByteArray());
 			}
 		} catch (Exception ex) {
 			logger.error("Exception when adding EXIF metadata", ex);

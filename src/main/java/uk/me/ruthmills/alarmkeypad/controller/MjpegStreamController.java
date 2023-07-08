@@ -39,12 +39,11 @@ public class MjpegStreamController {
 	private static final String HEAD = NL + NL + BOUNDARY + NL + "Content-Type: image/jpeg" + NL + "Content-Length: ";
 
 	private URLConnection conn;
-	private ByteArrayOutputStream byteArrayOutputStream;
-	private byte[] currentFrame = new byte[0];
 	private String nowFormatted;
 
 	@Value("${streamURL}")
 	private String streamURL;
+
 	private static final Logger logger = LoggerFactory.getLogger(MjpegStreamController.class);
 
 	/**
@@ -70,6 +69,7 @@ public class MjpegStreamController {
 							int cur = 0;
 
 							// EOF is -1
+							ByteArrayOutputStream byteArrayOutputStream = null;
 							while ((inputStream != null) && ((cur = inputStream.read()) >= 0)) {
 								if (prev == 0xFF && cur == 0xD8) {
 									LocalDateTime now = LocalDateTime.now();
@@ -81,10 +81,11 @@ public class MjpegStreamController {
 									byteArrayOutputStream.write((byte) cur);
 									if (prev == 0xFF && cur == 0xD9) {
 										byteArrayOutputStream.flush();
-										currentFrame = byteArrayOutputStream.toByteArray();
+										byte[] imageBytes = byteArrayOutputStream.toByteArray();
 										byteArrayOutputStream.close();
+										byteArrayOutputStream = null;
 										// the image is now available - read it
-										handleNewFrame(outputStream);
+										handleNewFrame(imageBytes, outputStream);
 									}
 								}
 								prev = cur;
@@ -110,9 +111,9 @@ public class MjpegStreamController {
 		return bufferedInputStream;
 	}
 
-	private void handleNewFrame(OutputStream outputStream) {
+	private void handleNewFrame(byte[] imageBytes, OutputStream outputStream) {
 		try {
-			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(currentFrame);
+			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(imageBytes);
 			TiffImageMetadata exif = imageMetadata.getExif();
 			TiffOutputSet outputSet = exif.getOutputSet();
 			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
@@ -121,7 +122,7 @@ public class MjpegStreamController {
 			exifDirectory.add(ExifTagConstants.EXIF_TAG_OWNER_NAME, nowFormatted);
 			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE)) {
 				// Create a copy of the JPEG image with EXIF metadata added.
-				new ExifRewriter().updateExifMetadataLossy(currentFrame, exifOutputStream, outputSet);
+				new ExifRewriter().updateExifMetadataLossy(imageBytes, exifOutputStream, outputSet);
 
 				exifOutputStream.flush();
 				byte[] image = exifOutputStream.toByteArray();

@@ -123,6 +123,7 @@ public class MjpegStreamController {
 				// Create a copy of the JPEG image with EXIF metadata added.
 				new ExifRewriter().updateExifMetadataLossy(currentFrame, exifOutputStream, outputSet);
 
+				exifOutputStream.flush();
 				byte[] image = exifOutputStream.toByteArray();
 
 				// Write the MJPEG header stuff.

@@ -40,7 +40,7 @@ public class MjpegStreamController {
 
 	private URLConnection conn;
 	private ByteArrayOutputStream byteArrayOutputStream;
-	protected byte[] currentFrame = new byte[0];
+	private byte[] currentFrame = new byte[0];
 	private boolean connected;
 
 	@Value("${streamURL}")
@@ -135,6 +135,9 @@ public class MjpegStreamController {
 
 				// Write the EXIF-ed image.
 				outputStream.write(image);
+
+				// Flush the loo.
+				outputStream.flush();
 			}
 		} catch (Exception ex) {
 			logger.error("Exception when adding EXIF metadata", ex);

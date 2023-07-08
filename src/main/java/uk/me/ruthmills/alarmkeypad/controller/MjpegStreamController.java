@@ -80,9 +80,8 @@ public class MjpegStreamController {
 								if (byteArrayOutputStream != null) {
 									byteArrayOutputStream.write((byte) cur);
 									if (prev == 0xFF && cur == 0xD9) {
-										synchronized (currentFrame) {
-											currentFrame = byteArrayOutputStream.toByteArray();
-										}
+										byteArrayOutputStream.flush();
+										currentFrame = byteArrayOutputStream.toByteArray();
 										byteArrayOutputStream.close();
 										// the image is now available - read it
 										handleNewFrame(outputStream);

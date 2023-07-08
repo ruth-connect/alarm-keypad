@@ -1,5 +1,6 @@
 package uk.me.ruthmills.alarmkeypad.controller;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +10,8 @@ import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImageWriteException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
@@ -32,6 +35,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class MjpegStreamController {
 
 	// MJPEG multipart boundary stuff.
+	private static final int INPUT_BUFFER_SIZE = 16384;
 	private static final String NL = "\r\n";
 	private static final String BOUNDARY = "--boundary";
 	private static final String HEAD = NL + NL + BOUNDARY + NL + "Content-Type: image/jpeg" + NL + "Content-Length: ";
@@ -46,6 +50,9 @@ public class MjpegStreamController {
 
 	/**
 	 * Get the MJPEG stream.
+	 * 
+	 * IMPORTANT - this will ONLY work for a SINGLE client connecting to this
+	 * application!
 	 * 
 	 * @return The MJPEG stream.
 	 */
@@ -69,7 +76,7 @@ public class MjpegStreamController {
 								if (prev == 0xFF && cur == 0xD8) {
 									LocalDateTime now = LocalDateTime.now();
 									nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
-									byteArrayOutputStream = new ByteArrayOutputStream();
+									byteArrayOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE);
 									byteArrayOutputStream.write((byte) prev);
 								}
 								if (byteArrayOutputStream != null) {
@@ -87,24 +94,32 @@ public class MjpegStreamController {
 							}
 						} catch (Exception ex) {
 							logger.error("Failed to read stream", ex);
+							throw ex;
 						}
 					}
+				} catch (IOException ex) {
+					logger.error("I/O Exception when writing output stream", ex);
+					throw ex;
 				} catch (Exception ex) {
 					logger.error("Exception when writing output stream", ex);
+					throw new RuntimeException(ex);
 				}
 			}
 		};
 	}
 
-	private InputStream openConnection() throws IOException {
+	private BufferedInputStream openConnection() throws IOException {
+		BufferedInputStream bufferedInputStream = null;
 		URL url = new URL(streamURL);
 		conn = url.openConnection();
 		conn.setReadTimeout(5000); // 5 seconds
 		conn.connect();
-		return conn.getInputStream();
+		bufferedInputStream = new BufferedInputStream(conn.getInputStream(), INPUT_BUFFER_SIZE);
+		return bufferedInputStream;
 	}
 
-	private void handleNewFrame(byte[] imageBytes, OutputStream outputStream) {
+	private void handleNewFrame(byte[] imageBytes, OutputStream outputStream)
+			throws ImageReadException, ImageWriteException, IOException {
 		try {
 			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(imageBytes);
 			TiffImageMetadata exif = imageMetadata.getExif();
@@ -113,7 +128,7 @@ public class MjpegStreamController {
 
 			// Use the Owner Name tag to store the timestamp in milliseconds.
 			exifDirectory.add(ExifTagConstants.EXIF_TAG_OWNER_NAME, nowFormatted);
-			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream()) {
+			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE)) {
 				// Create a copy of the JPEG image with EXIF metadata added.
 				new ExifRewriter().updateExifMetadataLossy(imageBytes, exifOutputStream, outputSet);
 
@@ -131,6 +146,7 @@ public class MjpegStreamController {
 			}
 		} catch (Exception ex) {
 			logger.error("Exception when adding EXIF metadata", ex);
+			throw ex;
 		}
 	}
 }

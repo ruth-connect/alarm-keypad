@@ -132,9 +132,6 @@ public class MjpegStreamController {
 
 				// Write the EXIF-ed image.
 				outputStream.write(image);
-
-				// Flush the loo.
-				outputStream.flush();
 			}
 		} catch (Exception ex) {
 			logger.error("Exception when adding EXIF metadata", ex);

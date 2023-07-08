@@ -1,25 +1,31 @@
 package uk.me.ruthmills.alarmkeypad.controller;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import uk.me.ruthmills.alarmkeypad.service.ImageService;
-
 /**
  * MJPEG stream controller.
- * 
- * This is a HORRIBLE hack - as it will only work for ONE client connecting at
- * once.
- * 
- * But it will work for our purposes, as only one client will ever connect at
- * once anyway.
  * 
  * @author ruth
  */
@@ -27,13 +33,18 @@ import uk.me.ruthmills.alarmkeypad.service.ImageService;
 public class MjpegStreamController {
 
 	// MJPEG multipart boundary stuff.
+	private static final int INPUT_BUFFER_SIZE = 16384;
 	private static final String NL = "\r\n";
 	private static final String BOUNDARY = "--boundary";
 	private static final String HEAD = NL + NL + BOUNDARY + NL + "Content-Type: image/jpeg" + NL + "Content-Length: ";
 
-	@Autowired
-	private ImageService imageService;
+	private URLConnection conn;
+	private ByteArrayOutputStream byteArrayOutputStream;
+	protected byte[] currentFrame = new byte[0];
+	private boolean connected;
 
+	@Value("${streamURL}")
+	private String streamURL;
 	private static final Logger logger = LoggerFactory.getLogger(MjpegStreamController.class);
 
 	/**
@@ -51,28 +62,38 @@ public class MjpegStreamController {
 
 			@Override
 			public void writeTo(OutputStream outputStream) throws IOException {
-				// Grab the first image from the stream and ditch it, because it will have an
-				// old timestamp.
-				try {
-					imageService.getNextImage();
-				} catch (InterruptedException ex) {
-					logger.error("Interrupted Exception", ex);
-				}
-
 				try {
 					// Continue until the connection drops.
 					while (true) {
-						try {
-							// Wait for the next EXIF-ed image from the camera.
-							byte[] image = imageService.getNextImage();
+						try (InputStream inputStream = openConnection()) {
+							int prev = 0;
+							int cur = 0;
 
-							// Write the MJPEG header stuff.
-							outputStream.write((HEAD + image.length + NL + NL).getBytes());
-
-							// Write the EXIF-ed image.
-							outputStream.write(image);
-						} catch (InterruptedException ex) {
-							logger.error("Interrupted Exception", ex);
+							// EOF is -1
+							while ((inputStream != null) && ((cur = inputStream.read()) >= 0)) {
+								if (prev == 0xFF && cur == 0xD8) {
+									byteArrayOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE);
+									byteArrayOutputStream.write((byte) prev);
+								}
+								if (byteArrayOutputStream != null) {
+									byteArrayOutputStream.write((byte) cur);
+									if (prev == 0xFF && cur == 0xD9) {
+										synchronized (currentFrame) {
+											currentFrame = byteArrayOutputStream.toByteArray();
+										}
+										byteArrayOutputStream.close();
+										// the image is now available - read it
+										handleNewFrame(outputStream);
+										if (!connected) {
+											logger.info("Connected to camera successfully!");
+											connected = true;
+										}
+									}
+								}
+								prev = cur;
+							}
+						} catch (Exception ex) {
+							logger.error("Failed to read stream", ex);
 						}
 					}
 				} catch (Exception ex) {
@@ -80,5 +101,43 @@ public class MjpegStreamController {
 				}
 			}
 		};
+	}
+
+	private BufferedInputStream openConnection() throws IOException {
+		BufferedInputStream bufferedInputStream = null;
+		URL url = new URL(streamURL);
+		conn = url.openConnection();
+		conn.setReadTimeout(5000); // 5 seconds
+		conn.connect();
+		bufferedInputStream = new BufferedInputStream(conn.getInputStream(), INPUT_BUFFER_SIZE);
+		return bufferedInputStream;
+	}
+
+	private void handleNewFrame(OutputStream outputStream) {
+		try {
+			LocalDateTime now = LocalDateTime.now();
+			String nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
+			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(currentFrame);
+			TiffImageMetadata exif = imageMetadata.getExif();
+			TiffOutputSet outputSet = exif.getOutputSet();
+			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
+
+			// Use the Owner Name tag to store the timestamp in milliseconds.
+			exifDirectory.add(ExifTagConstants.EXIF_TAG_OWNER_NAME, nowFormatted);
+			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE)) {
+				// Create a copy of the JPEG image with EXIF metadata added.
+				new ExifRewriter().updateExifMetadataLossy(currentFrame, exifOutputStream, outputSet);
+
+				byte[] image = exifOutputStream.toByteArray();
+
+				// Write the MJPEG header stuff.
+				outputStream.write((HEAD + image.length + NL + NL).getBytes());
+
+				// Write the EXIF-ed image.
+				outputStream.write(image);
+			}
+		} catch (Exception ex) {
+			logger.error("Exception when adding EXIF metadata", ex);
+		}
 	}
 }

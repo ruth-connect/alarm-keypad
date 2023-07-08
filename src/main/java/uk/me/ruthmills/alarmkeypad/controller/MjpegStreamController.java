@@ -41,7 +41,7 @@ public class MjpegStreamController {
 	private URLConnection conn;
 	private ByteArrayOutputStream byteArrayOutputStream;
 	private byte[] currentFrame = new byte[0];
-	private boolean connected;
+	private String nowFormatted;
 
 	@Value("${streamURL}")
 	private String streamURL;
@@ -72,6 +72,8 @@ public class MjpegStreamController {
 							// EOF is -1
 							while ((inputStream != null) && ((cur = inputStream.read()) >= 0)) {
 								if (prev == 0xFF && cur == 0xD8) {
+									LocalDateTime now = LocalDateTime.now();
+									nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
 									byteArrayOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE);
 									byteArrayOutputStream.write((byte) prev);
 								}
@@ -84,10 +86,6 @@ public class MjpegStreamController {
 										byteArrayOutputStream.close();
 										// the image is now available - read it
 										handleNewFrame(outputStream);
-										if (!connected) {
-											logger.info("Connected to camera successfully!");
-											connected = true;
-										}
 									}
 								}
 								prev = cur;
@@ -115,8 +113,6 @@ public class MjpegStreamController {
 
 	private void handleNewFrame(OutputStream outputStream) {
 		try {
-			LocalDateTime now = LocalDateTime.now();
-			String nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
 			JpegImageMetadata imageMetadata = (JpegImageMetadata) Imaging.getMetadata(currentFrame);
 			TiffImageMetadata exif = imageMetadata.getExif();
 			TiffOutputSet outputSet = exif.getOutputSet();

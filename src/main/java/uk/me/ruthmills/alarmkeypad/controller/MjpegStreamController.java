@@ -1,6 +1,5 @@
 package uk.me.ruthmills.alarmkeypad.controller;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class MjpegStreamController {
 
 	// MJPEG multipart boundary stuff.
-	private static final int INPUT_BUFFER_SIZE = 16384;
+	private static final int BUFFER_SIZE = 16384;
 	private static final String NL = "\r\n";
 	private static final String BOUNDARY = "--boundary";
 	private static final String HEAD = NL + NL + BOUNDARY + NL + "Content-Type: image/jpeg" + NL + "Content-Length: ";
@@ -76,7 +75,7 @@ public class MjpegStreamController {
 								if (prev == 0xFF && cur == 0xD8) {
 									LocalDateTime now = LocalDateTime.now();
 									nowFormatted = Long.toString(now.toInstant(ZoneOffset.UTC).toEpochMilli());
-									byteArrayOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE);
+									byteArrayOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
 									byteArrayOutputStream.write((byte) prev);
 								}
 								if (byteArrayOutputStream != null) {
@@ -108,14 +107,12 @@ public class MjpegStreamController {
 		};
 	}
 
-	private BufferedInputStream openConnection() throws IOException {
-		BufferedInputStream bufferedInputStream = null;
+	private InputStream openConnection() throws IOException {
 		URL url = new URL(streamURL);
 		conn = url.openConnection();
 		conn.setReadTimeout(5000); // 5 seconds
 		conn.connect();
-		bufferedInputStream = new BufferedInputStream(conn.getInputStream(), INPUT_BUFFER_SIZE);
-		return bufferedInputStream;
+		return conn.getInputStream();
 	}
 
 	private void handleNewFrame(byte[] imageBytes, OutputStream outputStream)
@@ -128,7 +125,7 @@ public class MjpegStreamController {
 
 			// Use the Owner Name tag to store the timestamp in milliseconds.
 			exifDirectory.add(ExifTagConstants.EXIF_TAG_OWNER_NAME, nowFormatted);
-			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(INPUT_BUFFER_SIZE)) {
+			try (ByteArrayOutputStream exifOutputStream = new ByteArrayOutputStream(BUFFER_SIZE)) {
 				// Create a copy of the JPEG image with EXIF metadata added.
 				new ExifRewriter().updateExifMetadataLossy(imageBytes, exifOutputStream, outputSet);
 
